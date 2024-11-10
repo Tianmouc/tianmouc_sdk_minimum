@@ -1,0 +1,4 @@
+/home/lyh/codes/camera_sdk_minimum/build/CMakeFiles/tianmoucv_app.dir
+/home/lyh/codes/camera_sdk_minimum/build/CMakeFiles/tianmouc.dir
+/home/lyh/codes/camera_sdk_minimum/build/CMakeFiles/edit_cache.dir
+/home/lyh/codes/camera_sdk_minimum/build/CMakeFiles/rebuild_cache.dir

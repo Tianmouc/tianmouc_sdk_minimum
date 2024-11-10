@@ -1,0 +1,61 @@
+
+                    Cypress Semiconductor Corporation
+                   CyUSB Suite For Linux, version 1.0.5
+                   ====================================
+
+Pre-requisites:
+ 1. libusb-1.0.x is required for compilation and functioning of the API
+    library.
+ 2. Native gcc/g++ tool-chain and the GNU make utility are required for
+    compiling the library and application.
+ 2. qt4 is required for building the cyusb_linux GUI application.
+ 3. The pidof command is used by the cyusb_linux application to handle
+    hot-plug of USB devices.
+
+Installation Steps:
+
+ 1. cd to the main directory where files where extracted and execute 'make'.
+    This will compile the libcyusb library and create a static library.
+
+    For example, if the archive is extracted to /home/user/cyusb_linux_1.0.5; then
+    e.g.: user@desktop:/home/user/cyusb_linux_1.0.5 $ make
+
+2. 用install.sh把配置文件都复制到系统路径
+
+
+.
+├── configs #不知道有什么用
+│   ├── 88-cyusb.rules
+│   ├── cy_renumerate.sh
+│   └── cyusb.conf
+├── docs
+│   ├── cyusb_linux_programmers_guide.pdf
+│   └── cyusb_linux_user_guide.pdf
+├── include 
+│   ├── controlcenter.h
+│   └── cyusb.h
+├── lib
+│   ├── libcyusb.cpp
+│   ├── libcyusb.so -> libcyusb.so.1
+│   └── libcyusb.so.1
+├── license.txt
+├── Makefile # 先在顶层文件夹执行make，编译出来libcyusb.so
+├── README
+├── src #在 src下make，得到所有测试文件的bin，
+│   ├── 00_fwload.cpp
+│   ├── 01_getdesc.cpp
+│   ├── 03_getconfig.cpp
+│   ├── 04_kerneldriver.cpp
+│   ├── 05_claiminterface.cpp
+│   ├── 06_setalternate.cpp
+│   ├── 08_cybulk.cpp
+│   ├── 09_cyusb_performance.cpp #我对这个cpp做了一点改动，让他直接测试0x86这个endpoint的上传速度，它的结构和streamer应该差不多，可以参考他的写法，更改一些api即可实现我们的USB
+│   ├── config_parser.c
+│   ├── cyusbd.cpp
+│   ├── download_fx2.cpp
+│   ├── download_fx3.cpp
+│   └── Makefile
+└── test_cases
+    ├── create.c
+    ├── Makefile
+    └── README
