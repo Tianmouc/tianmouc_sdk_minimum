@@ -1,7 +1,8 @@
+echo 'do excute it under conda env'
 mkdir build
 cd build
 cp ./lib/*.so ./
-DEFAULTPATH="/home/lyh/projects/tianmouc_sdk"
+DEFAULTPATH="/home/lyh/codes/tianmouc_sdk"
 echo "please input the Tianmouc_sdk path, the default is: $DEFAULTPATH (enter for defualt)"
 read SDK_PATH
 if [ -z "$SDK_PATH" ]; then
@@ -10,5 +11,5 @@ if [ -z "$SDK_PATH" ]; then
 else
   echo "Using input name: $SDK_PATH"
 fi
-cmake -DSDK_PATH=$SDK_PATH ..
+cmake -DSDK_PATH=$SDK_PATH ..  
 make

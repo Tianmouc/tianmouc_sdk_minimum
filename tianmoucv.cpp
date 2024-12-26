@@ -1,6 +1,12 @@
- #include "tianmoucv.h"
+#include "tianmoucv.h"
 #include "isp.h"
 #include "unistd.h"
+
+#include <iostream>
+#include <thread>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 
 /*
 WARNING:DEV vesion.
@@ -137,7 +143,7 @@ bool tmGetFrame(unsigned long long cameraHandle, tianmoucData* metadata){
             break;
         }
         else{
-            usleep(50);
+            usleep(10);
             faliedCount += 1;
             if(DEBUG && faliedCount%1000 == 0){
                 std::cout<<"[cpp sdk]waiting for next frame.., failed times:"<<faliedCount<<std::endl;
@@ -182,9 +188,6 @@ void tmExposureSet(unsigned long long cameraHandle, int rodAEtime, int coneAEtim
 
 }
 
-
-
-
 void IICconfig_download(unsigned long long cameraHandle, const char* IICconfigPath){
 
     try {
@@ -207,33 +210,57 @@ void IICconfig_download(unsigned long long cameraHandle, const char* IICconfigPa
 }
 
 
-int main(int argc, char* argv[])
-{   //Camera handle
+// --------------------------------------------------------------------------------------------
+//
+//   Multi-Thread Version
+//
+// --------------------------------------------------------------------------------------------
+std::queue<tianmoucData> cameraDataQueue;
+std::mutex mutexCameraData;
+std::condition_variable cvCameraData;
+
+unsigned long long cameraHandle;
+
+// Function for reading camera data and pushing it into the queue
+void cameraDataAcquisition() {
     tianmoucData metadata;
-
-    
-    cv::Mat Ix = cv::Mat::zeros(ROD_H, ROD_W, CV_32FC1);
-    cv::Mat Iy = cv::Mat::zeros(ROD_H, ROD_W, CV_32FC1);
-    std::cout << "[cpp sdk]before open "  << std::endl;
-    unsigned long long cameraHandle = tmOpenCamera();
-    std::cout << "[cpp sdk]after open device,"<< "after cameraHandle:" << cameraHandle<<std::endl;
-
-    IICconfig_download(cameraHandle,"./lib/Golden_HCG_seq.csv");
-
-    tmExposureSet(cameraHandle, 1200, 15000, 1, 1, 8,1,1);//don't change last three parameters for Golden_HCG_seq.csv
-
-    tmStartTransfer(cameraHandle);
-
-    int render_gap = 5;
     int i = 0;
     while(1){
         i ++;
         tmGetFrame(cameraHandle,&metadata);
         std::cout<<"[cpp sdk]frame:"<<i<<std::endl;
-        std::cout<<"[cpp sdk]time:"<<metadata.timestamp<<"0us"<<std::endl;
+        {
+            std::lock_guard<std::mutex> lock(mutexCameraData);
+            cameraDataQueue.push(metadata);
+        }
+        cvCameraData.notify_one();
+    }
+}
+
+// Function for processing camera data from the queue
+void cameraDataProcessing() {
+    tianmoucData metadata;
+    cv::Mat Ix = cv::Mat::zeros(ROD_H, ROD_W, CV_32FC1);
+    cv::Mat Iy = cv::Mat::zeros(ROD_H, ROD_W, CV_32FC1);
+    int render_gap = 5;
+    int idr = 0;
+    int idc = 0;
+
+    while (true) {
+        {
+            std::unique_lock<std::mutex> lock(mutexCameraData);
+            cvCameraData.wait(lock, []{ return !cameraDataQueue.empty(); });
+            metadata = cameraDataQueue.front();
+            cameraDataQueue.pop();
+        }
         if(metadata.isRod==1){
-            std::cout<<"[cpp sdk]get rod"<<std::endl;
-            if ((i%render_gap) == 0){
+            idr ++;
+            std::cout<<"[cpp sdk]get rod:"<<idr<<"/"<<metadata.timestamp<<"0us"<<std::endl;
+
+            //---------YOUR AOP PROCESS CODE HERE----------
+
+            //------------------------------------------
+            if ((idr%render_gap) == 0){
                 cv::Mat SD_recon = cv::Mat::zeros(ROD_H, ROD_W, CV_32F);
                 cv::Mat SDL(ROD_H, ROD_W, CV_8SC1, metadata.sdl_p);
                 cv::Mat SDR(ROD_H, ROD_W, CV_8SC1, metadata.sdr_p);
@@ -246,13 +273,39 @@ int main(int argc, char* argv[])
                 cv::waitKey(1);
             }
         }else{
-            std::cout<<"[cpp sdk]get cone"<<std::endl;
+            //---------YOUR COP PROCESS CODE HERE----------
+
+            //------------------------------------------
+            idc ++;
+            std::cout<<"[cpp sdk]get cone:"<<idc<<"/"<<metadata.timestamp<<"0us"<<std::endl;
             cv::Mat image(CONE_H, CONE_W*2, CV_32FC3, metadata.rgb_p);
             cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
             cv::imshow("RGB", image/255.0);
             cv::waitKey(1);
         }
     }
+}
+
+int main(int argc, char* argv[])
+{   //Camera handle
+    
+
+    std::cout << "[cpp sdk]before open "  << std::endl;
+    cameraHandle = tmOpenCamera();
+    std::cout << "[cpp sdk]after open device,"<< "after cameraHandle:" << cameraHandle<<std::endl;
+
+    IICconfig_download(cameraHandle,"./lib/Golden_HCG_seq.csv");
+
+    tmExposureSet(cameraHandle, 1200, 15000, 1, 1, 8,1,1);//don't change last three parameters for Golden_HCG_seq.csv
+
+    tmStartTransfer(cameraHandle);
+
+    std::thread streamThread(cameraDataAcquisition);
+    std::thread processThread(cameraDataProcessing);
+
+    streamThread.join();
+    processThread.join();
+
     tmCameraUninit(cameraHandle);
     return 0;
 }

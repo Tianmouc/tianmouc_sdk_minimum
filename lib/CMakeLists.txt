@@ -31,9 +31,7 @@ else()
     message(FATAL_ERROR "OpenCV version 4.5.0 or higher is required.")
 endif()
 
-# Add RPATH for OpenCV libraries
-set(CMAKE_BUILD_RPATH "/usr/lib/x86_64-linux-gnu")
-set(CMAKE_INSTALL_RPATH "/usr/lib/x86_64-linux-gnu")
+
 
 # Add the directory for libtianmouc.so explicitly
 set(CMAKE_BUILD_RPATH "${CMAKE_BUILD_RPATH};${PROJECT_SOURCE_DIR}/lib")

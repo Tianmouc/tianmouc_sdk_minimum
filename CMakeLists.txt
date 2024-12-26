@@ -77,8 +77,13 @@ else()
     include_directories(${inc2})
     include_directories(${inc3})
     include_directories(${inc4})
-    add_compile_definitions(USB_SDK)
 
+    include_directories("/usr/local/include/opencv4")
+
+    include_directories("/usr/include/")
+    link_directories("/usr/lib/x86_64-linux-gnu")
+    
+    add_compile_definitions(USB_SDK)
     set(file1 tianmoucv.cpp)
     set(file2 ${SDK_PATH}/src/tmc_proc.cpp)
     set(file3 ${SDK_PATH}/usb/src/new_dataRecevier.cpp)
@@ -87,9 +92,8 @@ else()
     set(file6 ${SDK_PATH}/usb/src/tools.cpp)
     set(file7 ${SDK_PATH}/src/isp.cpp)
     
-
-    include_directories("/usr/local/include/opencv4")
     find_package(OpenCV 4 REQUIRED)
+
     if(OpenCV_FOUND)
         message(STATUS "Found OpenCV version: ${OpenCV_VERSION}")
     else()
@@ -97,10 +101,10 @@ else()
     endif()
 
     add_executable(tianmoucv_app ${file1} ${file2} ${file3} ${file4} ${file5} ${file6} ${file7})
-    target_link_libraries(tianmoucv_app PRIVATE ${OpenCV_LIBS} pthread cyusb -lusb-1.0)
+    target_link_libraries(tianmoucv_app PRIVATE ${OpenCV_LIBS} pthread cyusb usb-1.0)
 
     add_library(tianmouc SHARED ${file1} ${file2} ${file3} ${file4} ${file5} ${file6} ${file7})
-    target_link_libraries(tianmouc PRIVATE ${OpenCV_LIBS} cyusb pthread -lusb-1.0)
+    target_link_libraries(tianmouc PRIVATE ${OpenCV_LIBS} cyusb pthread usb-1.0)
 
 
 endif()
