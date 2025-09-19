@@ -17,6 +17,12 @@
 1. You can find another cmake file in ./lib, use it to replace the defualt one
 2. compile this project, you can still get the app
 
+### Function
+
+The program ./build/tianmoucv_app executes two parallel visualization branches with different frame rates, displaying RGB and TSD respectively, as shown in the following effect:
+<img width="1854" height="960" alt="79d80186d8edcf133e7581bfe0ededa4" src="https://github.com/user-attachments/assets/57271f6b-4989-4e32-b509-dac42c458261" />
+
+This program can serve as a foundation for developing more low-latency, high-speed inference algorithms.
 
 ## development log
 
