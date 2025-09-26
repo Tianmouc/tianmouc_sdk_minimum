@@ -1,4 +1,4 @@
-# Tianmouc SDK miniomum version
+# Tianmouc SDK minimum version
 
 ## usages
 
